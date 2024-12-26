@@ -1,0 +1,49 @@
+@{
+ViewData["Title"] = "Log in";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - MAU Sport</title>
+    <link rel="stylesheet" href="~/css/login.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+
+<div class="page">
+    <nav>
+        <img src="~/images/mauLogo1.png" class="logo">
+
+        <div>
+            <a href="@Url.Action("Register", "Account")" class="btnReturnRegister">Back to register</a>
+        </div>
+    </nav>
+
+    <div class="wrapper">
+        <!-- Formu POST yöntemiyle gönderiyoruz -->
+        <form asp-action="Login" method="post">
+            <h1>Log in</h1>
+
+            <div class="inputLogin-box">
+
+                <div class="input-field">
+                    <input type="text" placeholder="Username" name="Username" required />
+                    <i class='bx bxs-user'></i>
+                </div>
+                <div class="input-field">
+                    <input type="password" placeholder="Password" name="Password" required />
+                    <i class='bx bxs-lock-alt'></i>
+                </div>
+            </div>
+
+            <button type="submit" class="btnLoginLogin">Log in</button>
+        </form>
+
+    </div>
+
+</div>
+</body>
+</html>
