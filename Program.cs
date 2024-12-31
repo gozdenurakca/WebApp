@@ -22,7 +22,7 @@ namespace SportSchoolProject
                     webBuilder.ConfigureServices((context, services) =>
                     {
                         // ApplicationDbContext'i ve Identity'yi ekleyin
-                        var connectionString = context.Configuration.GetConnectionString("SportSchoolDB");
+                        var connectionString = context.Configuration.GetConnectionString("DefaultConnection");
 
                         services.AddDbContext<ApplicationDbContext>(options =>
                             options.UseSqlServer(connectionString));

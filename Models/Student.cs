@@ -10,6 +10,8 @@ public class Student
     [ForeignKey("User")]
     public int StudentID { get; set; }
 
+    public string UserId { get; set; }  
+
     [Required]
     [StringLength(100)]
     public string FullName { get; set; }
@@ -25,7 +27,7 @@ public class Student
     public int? CourseID { get; set; }
 
     // Navigation properties
-    public virtual User User { get; set; }
+    public  User User { get; set; }
     public virtual Branch Branch { get; set; }
     public virtual Trainer Trainer { get; set; }
     public virtual Course Course { get; set; }

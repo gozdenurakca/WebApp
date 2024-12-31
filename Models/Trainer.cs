@@ -7,6 +7,9 @@ public class Trainer
     [Key]
     [ForeignKey("User")]
     public int TrainerID { get; set; }
+    
+    public string UserId { get; set; } 
+
 
     [Required]
     [StringLength(100)]

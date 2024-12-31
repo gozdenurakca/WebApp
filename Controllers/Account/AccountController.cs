@@ -1,33 +1,26 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
+using SportSchoolProject;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 public class AccountController : Controller
 {
-    private readonly IConfiguration _configuration;
-    private readonly UserManager<User> _userManager;
-    private readonly SignInManager<User> _signInManager;
-    private readonly IPasswordHasher<User> _passwordHasher;
+    private readonly ApplicationDbContext _context;
 
-
-    public AccountController(UserManager<User> userManager, SignInManager<User> signInManager,
-        IConfiguration configuration, IPasswordHasher<User> passwordHasher)
+    public AccountController(ApplicationDbContext context)
     {
-        _userManager = userManager;
-        _signInManager = signInManager;
-        _configuration = configuration;
-        _passwordHasher = passwordHasher;
-
-
-
+        _context = context;
     }
 
-    public IActionResult Login()
+    private bool VerifyPasswordHash(string password, string storedHash)
     {
-        return View();
+        var passwordHasher = new PasswordHasher<User>();
+        var result = passwordHasher.VerifyHashedPassword(null, storedHash, password);
+        return result == PasswordVerificationResult.Success;
     }
 
-    [HttpPost]
     public async Task<IActionResult> Login(string username, string password)
     {
         if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
@@ -36,66 +29,29 @@ public class AccountController : Controller
             return View();
         }
 
-        using (SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+        // Kullanıcıyı veritabanından getir
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == username);
+        
+        if (user == null || !VerifyPasswordHash(password, user.PasswordHash))
         {
-            await connection.OpenAsync();
-
-            string query = @"
-            SELECT UserID, Password, UserType
-            FROM Users
-            WHERE Username = @Username";
-
-            using (SqlCommand command = new SqlCommand(query, connection))
-            {
-                command.Parameters.AddWithValue("@Username", username);
-
-                using (SqlDataReader reader = await command.ExecuteReaderAsync())
-                {
-                    if (await reader.ReadAsync())
-                    {
-                        string storedPasswordHash = reader.GetString(1);
-                        var user = new User(); // Create an instance of User class
-
-                        // Verify the password hash
-                        var result = _passwordHasher.VerifyHashedPassword(user, storedPasswordHash, password);
-
-                        if (result == PasswordVerificationResult.Success)
-                        {
-                            // Doğru şifre
-                            int userId = reader.GetInt32(0);
-                            string userType = reader.GetString(2);
-
-                            // Session'a UserID ve UserType kaydet
-                            HttpContext.Session.SetInt32("UserID", userId);
-                            HttpContext.Session.SetString("UserType", userType);
-
-                            // Kullanıcı türüne göre yönlendirme yap
-                            if (userType == "MajorAdmin")
-                            {
-                                return RedirectToAction("MajorAdminDashboard", "MajorAdmin");
-                            }
-                            else if (userType == "BranchAdmin")
-                            {
-                                return RedirectToAction("BranchAdminDashboard", "BranchAdmin");
-                            }
-
-                            return RedirectToAction("Index", "Home");
-                        }
-                        else
-                        {
-                            ModelState.AddModelError("", "Kullanıcı adı veya şifre hatalı.");
-                        }
-                    }
-                    else
-                    {
-                        ModelState.AddModelError("", "Kullanıcı adı veya şifre hatalı.");
-                    }
-                }
-            }
+            ModelState.AddModelError("", "Kullanıcı adı veya şifre hatalı.");
+            return View();
         }
 
-        return View();
+        // Kullanıcı doğrulandı, session'a UserID kaydedilebilir
+        HttpContext.Session.SetInt32("UserID", Convert.ToInt32(user.Id));
+
+        // Kullanıcı tipine göre yönlendirme yap
+        if (user.UserType == "MajorAdmin")
+        {
+            return RedirectToAction("MajorAdminDashboard", "MajorAdmin");
+        }
+        else if (user.UserType == "BranchAdmin")
+        {
+            return RedirectToAction("BranchAdminDashboard", "BranchAdmin");
+        }
+
+        // Diğer türler için yönlendirme yapılabilir
+        return RedirectToAction("Index", "Home");
     }
 }
-
-   

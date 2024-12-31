@@ -6,6 +6,7 @@ public class BranchAdmin
     [Key]
     [ForeignKey("User")]
     public int BranchAdminID { get; set; }
+    public string UserId { get; set; }
 
     [Required]
     public int BranchID { get; set; }
@@ -15,6 +16,6 @@ public class BranchAdmin
     public string FullName { get; set; }
 
     // Navigation properties
-    public virtual User User { get; set; }
+    public User User { get; set; }
     public virtual Branch Branch { get; set; }
 }
